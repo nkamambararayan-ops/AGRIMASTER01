@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — AgriMaster</title>
+<meta name="description" content="Connectez-vous à votre compte AgriMaster pour accéder à vos formations agricoles.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<main class="auth-wrapper">
+  <div class="auth-card glass">
+    <div class="auth-logo">
+      <img src="images/logo.png" alt="Logo AgriMaster">
+      <div class="logo-text" style="font-size:1.3rem;">Agri<span style="color:var(--orange-500)">Master</span></div>
+    </div>
+    <h1 class="auth-title">Connexion</h1>
+    <p class="auth-subtitle">Ravi de vous revoir ! Connectez-vous à votre espace.</p>
+
+    <div class="form-error" id="formError"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Adresse email</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" class="form-input" id="email" placeholder="vous@exemple.com" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" class="form-input" id="password" placeholder="Votre mot de passe" required>
+          <button type="button" class="input-toggle-eye" onclick="togglePwd('password', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="form-row-between">
+        <label class="form-check"><input type="checkbox"> Se souvenir de moi</label>
+        <a href="mot-de-passe-oublie.html" class="form-link">Mot de passe oublié ?</a>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+        <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+      </button>
+    </form>
+
+    <p class="auth-footer-text">Pas encore de compte ? <a href="inscription.html" class="form-link">S'inscrire gratuitement</a></p>
+  </div>
+</main>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+function togglePwd(id, btn) {
+  const input = document.getElementById(id);
+  const isPwd = input.type === 'password';
+  input.type = isPwd ? 'text' : 'password';
+  btn.innerHTML = `<i class="fa-solid ${isPwd ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+}
+
+const form = document.getElementById('loginForm');
+const errorBox = document.getElementById('formError');
+const submitBtn = document.getElementById('submitBtn');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorBox.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span> Connexion...';
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    const user = await loginUser({ email, password });
+    window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'tableau-de-bord.html';
+  } catch (err) {
+    errorBox.textContent = err.message || 'Une erreur est survenue.';
+    errorBox.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Se connecter';
+  }
+});
+
+const s = getSession();
+if (s) window.location.href = s.role === 'admin' ? 'admin-dashboard.html' : 'tableau-de-bord.html';
+</script>
+</body>
+</html>

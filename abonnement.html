@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abonnement — AgriMaster</title>
+<meta name="description" content="Abonnez-vous à AgriMaster pour seulement 100 FCFA par mois et accédez à toutes les formations agricoles et d'élevage.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<div id="navbar-mount"></div>
+
+<div class="page-hero reveal">
+  <span class="section-tag"><i class="fa-solid fa-crown"></i> Abonnement</span>
+  <h1>Un accès illimité, à prix imbattable</h1>
+  <p>Débloquez toutes nos formations en agriculture, élevage et agro-business pour un montant symbolique.</p>
+</div>
+
+<section class="section" style="max-width:600px;">
+  <div class="pricing-card glass reveal">
+    <span class="section-tag" style="margin:0 auto;"><i class="fa-solid fa-star"></i> Plan Standard</span>
+    <div class="pricing-price">100 FCFA<span> / mois</span></div>
+    <p style="color:var(--ink-500); font-size:0.92rem;">Sans engagement — Annulable à tout moment</p>
+    <ul class="pricing-features">
+      <li><i class="fa-solid fa-circle-check"></i> Accès illimité aux 40+ formations</li>
+      <li><i class="fa-solid fa-circle-check"></i> Téléchargement de guides PDF professionnels</li>
+      <li><i class="fa-solid fa-circle-check"></i> Nouvelles formations ajoutées régulièrement</li>
+      <li><i class="fa-solid fa-circle-check"></i> Support et accompagnement communautaire</li>
+      <li><i class="fa-solid fa-circle-check"></i> Historique complet de vos téléchargements</li>
+      <li><i class="fa-solid fa-circle-check"></i> Paiement 100% Mobile Money</li>
+    </ul>
+    <button class="btn btn-accent btn-block" id="subscribeBtn"><i class="fa-solid fa-bolt"></i> S'abonner maintenant</button>
+    <p id="subStatusMsg" style="margin-top:16px; font-size:0.85rem; color:var(--ink-500);"></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head reveal">
+    <span class="section-tag"><i class="fa-solid fa-circle-question"></i> FAQ</span>
+    <h2 class="section-title">Questions fréquentes</h2>
+  </div>
+  <div style="display:grid; gap:16px; max-width:800px; margin:0 auto;">
+    <div class="info-card glass reveal">
+      <h3 style="margin:0 0 8px; font-size:1rem;"><i class="fa-solid fa-mobile" style="color:var(--green-600)"></i> Comment payer avec Mobile Money ?</h3>
+      <p style="color:var(--ink-500); font-size:0.9rem; margin:0;">Cliquez sur "S'abonner", envoyez 100 FCFA au numéro affiché, puis entrez la référence de votre transaction pour validation instantanée.</p>
+    </div>
+    <div class="info-card glass reveal">
+      <h3 style="margin:0 0 8px; font-size:1rem;"><i class="fa-solid fa-rotate" style="color:var(--green-600)"></i> Le renouvellement est-il automatique ?</h3>
+      <p style="color:var(--ink-500); font-size:0.9rem; margin:0;">Non, vous devez renouveler manuellement chaque mois. Vous recevrez une notification avant expiration.</p>
+    </div>
+    <div class="info-card glass reveal">
+      <h3 style="margin:0 0 8px; font-size:1rem;"><i class="fa-solid fa-ban" style="color:var(--green-600)"></i> Puis-je annuler à tout moment ?</h3>
+      <p style="color:var(--ink-500); font-size:0.9rem; margin:0;">Oui, il n'y a aucun engagement. Votre abonnement expire simplement à la fin de la période payée.</p>
+    </div>
+  </div>
+</section>
+
+<div id="footer-mount"></div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/payment.js"></script>
+<script>
+renderNavbar('abonnement');
+renderFooter();
+
+async function checkSubStatus() {
+  const session = getSession();
+  const msg = document.getElementById('subStatusMsg');
+  const btn = document.getElementById('subscribeBtn');
+  if (!session) {
+    msg.textContent = 'Connectez-vous pour vous abonner.';
+    return;
+  }
+  const sub = await getActiveSubscription(session.id);
+  if (sub) {
+    msg.innerHTML = `<span class="badge-status badge-active"><i class="fa-solid fa-circle-check"></i> Abonnement actif jusqu'au ${new Date(sub.end_date).toLocaleDateString('fr-FR')}</span>`;
+    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Renouveler mon abonnement';
+  }
+}
+
+document.getElementById('subscribeBtn').addEventListener('click', () => {
+  const session = getSession();
+  if (!session) {
+    toast('Veuillez vous connecter pour vous abonner.', 'warning');
+    setTimeout(() => window.location.href = 'connexion.html', 1200);
+    return;
+  }
+  openPaymentModal(() => {
+    setTimeout(() => window.location.href = 'tableau-de-bord.html', 1500);
+  });
+});
+
+checkSubStatus();
+</script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration — AgriMaster</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<div id="navbar-mount"></div>
+
+<div class="dash-layout">
+  <aside class="dash-sidebar glass">
+    <div class="dash-user">
+      <div class="avatar" style="background:linear-gradient(135deg, var(--orange-600), var(--orange-500));"><i class="fa-solid fa-user-shield"></i></div>
+      <div>
+        <div class="dash-username">Administrateur</div>
+        <div class="dash-useremail" id="adminEmail"></div>
+      </div>
+    </div>
+    <nav class="dash-nav">
+      <a href="#stats" class="active" data-tab="stats"><i class="fa-solid fa-chart-pie"></i> Statistiques</a>
+      <a href="#utilisateurs" data-tab="utilisateurs"><i class="fa-solid fa-users"></i> Utilisateurs</a>
+      <a href="#formations" data-tab="formations"><i class="fa-solid fa-book"></i> Formations</a>
+      <a href="#abonnements" data-tab="abonnements"><i class="fa-solid fa-crown"></i> Abonnements</a>
+      <a href="#paiements" data-tab="paiements"><i class="fa-solid fa-money-bill-transfer"></i> Paiements</a>
+      <a href="#telechargements" data-tab="telechargements"><i class="fa-solid fa-download"></i> Téléchargements</a>
+    </nav>
+  </aside>
+
+  <main class="dash-main">
+    <!-- STATS -->
+    <section id="tab-stats">
+      <h1 style="margin-bottom:24px;">Tableau de bord administrateur</h1>
+      <div class="info-grid">
+        <div class="metric-card glass">
+          <div class="metric-icon" style="background:linear-gradient(135deg, var(--green-600), var(--green-400));"><i class="fa-solid fa-users"></i></div>
+          <div><div class="metric-value" id="statUsers">0</div><div class="metric-label">Utilisateurs inscrits</div></div>
+        </div>
+        <div class="metric-card glass">
+          <div class="metric-icon" style="background:linear-gradient(135deg, var(--orange-600), var(--orange-500));"><i class="fa-solid fa-crown"></i></div>
+          <div><div class="metric-value" id="statActiveSubs">0</div><div class="metric-label">Abonnements actifs</div></div>
+        </div>
+        <div class="metric-card glass">
+          <div class="metric-icon" style="background:linear-gradient(135deg, var(--green-700), var(--green-500));"><i class="fa-solid fa-money-bill-wave"></i></div>
+          <div><div class="metric-value" id="statRevenue">0 FCFA</div><div class="metric-label">Revenus générés</div></div>
+        </div>
+        <div class="metric-card glass">
+          <div class="metric-icon" style="background:linear-gradient(135deg, var(--orange-500), var(--orange-400));"><i class="fa-solid fa-download"></i></div>
+          <div><div class="metric-value" id="statDownloads">0</div><div class="metric-label">Téléchargements totaux</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:24px;">
+        <div class="info-card glass">
+          <h3 style="margin:0 0 16px;"><i class="fa-solid fa-chart-line" style="color:var(--green-600)"></i> Revenus (7 derniers paiements)</h3>
+          <div style="height:280px;"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="info-card glass">
+          <h3 style="margin:0 0 16px;"><i class="fa-solid fa-chart-pie" style="color:var(--green-600)"></i> Formations par catégorie</h3>
+          <div style="height:280px;"><canvas id="categoryChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UTILISATEURS -->
+    <section id="tab-utilisateurs" style="display:none;">
+      <h1 style="margin-bottom:24px;">Gestion des utilisateurs</h1>
+      <div class="table-wrap glass">
+        <table class="data-table">
+          <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Statut</th><th>Inscrit le</th><th>Action</th></tr></thead>
+          <tbody id="usersBody"><tr><td colspan="7" style="text-align:center; color:var(--ink-500);">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FORMATIONS -->
+    <section id="tab-formations" style="display:none;">
+      <h1 style="margin-bottom:24px;">Gestion des formations</h1>
+      <div class="table-wrap glass">
+        <table class="data-table">
+          <thead><tr><th>Titre</th><th>Catégorie</th><th>Niveau</th><th>Note</th><th>Téléchargements</th><th>Populaire</th></tr></thead>
+          <tbody id="coursesBody"><tr><td colspan="6" style="text-align:center; color:var(--ink-500);">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ABONNEMENTS -->
+    <section id="tab-abonnements" style="display:none;">
+      <h1 style="margin-bottom:24px;">Gestion des abonnements</h1>
+      <div class="table-wrap glass">
+        <table class="data-table">
+          <thead><tr><th>Utilisateur</th><th>Plan</th><th>Montant</th><th>Début</th><th>Fin</th><th>Statut</th></tr></thead>
+          <tbody id="subsBody"><tr><td colspan="6" style="text-align:center; color:var(--ink-500);">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAIEMENTS -->
+    <section id="tab-paiements" style="display:none;">
+      <h1 style="margin-bottom:24px;">Historique des paiements</h1>
+      <div class="table-wrap glass">
+        <table class="data-table">
+          <thead><tr><th>Utilisateur</th><th>Référence</th><th>Montant</th><th>Opérateur</th><th>Statut</th><th>Reçu</th></tr></thead>
+          <tbody id="allPaymentsBody"><tr><td colspan="6" style="text-align:center; color:var(--ink-500);">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TÉLÉCHARGEMENTS -->
+    <section id="tab-telechargements" style="display:none;">
+      <h1 style="margin-bottom:24px;">Téléchargements effectués</h1>
+      <div class="table-wrap glass">
+        <table class="data-table">
+          <thead><tr><th>Utilisateur</th><th>Formation</th><th>Fichier</th><th>Date</th></tr></thead>
+          <tbody id="allDownloadsBody"><tr><td colspan="4" style="text-align:center; color:var(--ink-500);">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script>
+renderNavbar('');
+renderFooter();
+
+const session = requireAdmin();
+
+document.querySelectorAll('.dash-nav a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.dash-nav a').forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+    document.querySelectorAll('main.dash-main > section').forEach(s => s.style.display = 'none');
+    document.getElementById(`tab-${link.dataset.tab}`).style.display = 'block';
+  });
+});
+
+async function toggleUserStatus(userId, currentStatus) {
+  const newStatus = currentStatus === 'actif' ? 'suspendu' : 'actif';
+  await apiUpdate('users', userId, { status: newStatus });
+  toast(`Utilisateur ${newStatus === 'actif' ? 'réactivé' : 'suspendu'} avec succès.`);
+  loadAdmin();
+}
+
+async function loadAdmin() {
+  if (!session) return;
+  document.getElementById('adminEmail').textContent = session.email;
+
+  const [users, courses, subs, payments, downloads] = await Promise.all([
+    apiListAll('users'),
+    apiListAll('courses'),
+    apiListAll('subscriptions'),
+    apiListAll('payments'),
+    apiListAll('downloads')
+  ]);
+
+  const now = Date.now();
+  const activeSubs = subs.filter(s => s.status === 'active' && s.end_date > now);
+  const totalRevenue = payments.filter(p => p.status === 'valide').reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  document.getElementById('statUsers').textContent = users.length;
+  document.getElementById('statActiveSubs').textContent = activeSubs.length;
+  document.getElementById('statRevenue').textContent = formatFCFA(totalRevenue);
+  document.getElementById('statDownloads').textContent = downloads.length;
+
+  // Users table
+  document.getElementById('usersBody').innerHTML = users.length ? users.map(u => `
+    <tr>
+      <td>${u.full_name}</td>
+      <td>${u.email}</td>
+      <td>${u.phone || '—'}</td>
+      <td><span class="badge-status ${u.role === 'admin' ? 'badge-pending' : 'badge-active'}">${u.role}</span></td>
+      <td><span class="badge-status ${u.status === 'actif' ? 'badge-active' : 'badge-expired'}">${u.status}</span></td>
+      <td>${formatDate(u.created_at)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="toggleUserStatus('${u.id}','${u.status}')">${u.status === 'actif' ? 'Suspendre' : 'Réactiver'}</button></td>
+    </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;">Aucun utilisateur.</td></tr>';
+
+  // Courses table
+  document.getElementById('coursesBody').innerHTML = courses.map(c => `
+    <tr>
+      <td>${c.title}</td>
+      <td>${c.category}</td>
+      <td>${c.level}</td>
+      <td><i class="fa-solid fa-star" style="color:var(--orange-500)"></i> ${c.rating}</td>
+      <td>${c.downloads_count}</td>
+      <td>${c.popular ? '<span class="badge-status badge-active">Oui</span>' : '<span class="badge-status badge-expired">Non</span>'}</td>
+    </tr>`).join('');
+
+  // Subs table
+  document.getElementById('subsBody').innerHTML = subs.length ? subs.map(s => `
+    <tr>
+      <td>${s.user_email}</td>
+      <td>${s.plan}</td>
+      <td>${formatFCFA(s.amount)}</td>
+      <td>${formatDate(s.start_date)}</td>
+      <td>${formatDate(s.end_date)}</td>
+      <td><span class="badge-status ${s.status === 'active' && s.end_date > now ? 'badge-active' : 'badge-expired'}">${s.status === 'active' && s.end_date > now ? 'Active' : 'Expirée'}</span></td>
+    </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;">Aucun abonnement.</td></tr>';
+
+  // Payments table
+  document.getElementById('allPaymentsBody').innerHTML = payments.length ? payments.map(p => `
+    <tr>
+      <td>${p.user_email}</td>
+      <td>${p.transaction_reference}</td>
+      <td>${formatFCFA(p.amount)}</td>
+      <td>${p.operator}</td>
+      <td><span class="badge-status ${p.status === 'valide' ? 'badge-active' : 'badge-pending'}">${p.status}</span></td>
+      <td>${p.receipt_number}</td>
+    </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;">Aucun paiement.</td></tr>';
+
+  // Downloads table
+  document.getElementById('allDownloadsBody').innerHTML = downloads.length ? downloads.sort((a,b)=>b.created_at-a.created_at).map(d => `
+    <tr>
+      <td>${d.user_email}</td>
+      <td>${d.course_title}</td>
+      <td>${d.file_name}</td>
+      <td>${formatDate(d.created_at)}</td>
+    </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;">Aucun téléchargement.</td></tr>';
+
+  renderCharts(payments, courses);
+}
+
+function renderCharts(payments, courses) {
+  const recentPayments = payments.filter(p => p.status === 'valide').slice(-7);
+  const revenueCtx = document.getElementById('revenueChart');
+  new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+      labels: recentPayments.map((p, i) => `#${i + 1}`),
+      datasets: [{
+        label: 'Revenus (FCFA)',
+        data: recentPayments.map(p => p.amount),
+        borderColor: '#1a8a45',
+        backgroundColor: 'rgba(26,138,69,0.12)',
+        fill: true, tension: 0.4, pointBackgroundColor: '#e0631a'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  const catCounts = {};
+  courses.forEach(c => catCounts[c.category] = (catCounts[c.category] || 0) + 1);
+  const categoryCtx = document.getElementById('categoryChart');
+  new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catCounts),
+      datasets: [{ data: Object.values(catCounts), backgroundColor: ['#1a8a45', '#e0631a', '#146c3a'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+loadAdmin();
+</script>
+</body>
+</html>

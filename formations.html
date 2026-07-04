@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formations Agricoles & Élevage — AgriMaster</title>
+<meta name="description" content="Parcourez plus de 40 formations professionnelles en agriculture, élevage et agro-business. Guides PDF téléchargeables après abonnement.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<div id="navbar-mount"></div>
+
+<div class="page-hero reveal">
+  <span class="section-tag"><i class="fa-solid fa-book-open"></i> Catalogue</span>
+  <h1>Toutes nos formations</h1>
+  <p>Explorez notre bibliothèque complète de guides pratiques en agriculture, élevage et agro-business.</p>
+</div>
+
+<div class="section" style="padding-top:20px;">
+  <div class="filter-bar glass reveal">
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab active" data-cat="all">Toutes</button>
+      <button class="filter-tab" data-cat="Agriculture"><i class="fa-solid fa-seedling"></i> Agriculture</button>
+      <button class="filter-tab" data-cat="Élevage"><i class="fa-solid fa-cow"></i> Élevage</button>
+      <button class="filter-tab" data-cat="Agro-business"><i class="fa-solid fa-chart-line"></i> Agro-business</button>
+    </div>
+    <div class="search-input-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="Rechercher une formation...">
+    </div>
+  </div>
+
+  <div class="courses-grid" id="coursesGrid">
+    <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Chargement des formations...</p></div>
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script>
+renderNavbar('formations');
+renderFooter();
+
+let allCourses = [];
+let currentCat = 'all';
+let currentSearch = '';
+
+function renderCourses() {
+  let filtered = allCourses;
+  if (currentCat !== 'all') filtered = filtered.filter(c => c.category === currentCat);
+  if (currentSearch.trim()) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(c => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+  }
+  const grid = document.getElementById('coursesGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i><p>Aucune formation trouvée.</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(courseCardHtml).join('');
+  initRevealAnimations();
+}
+
+async function loadCourses() {
+  try {
+    allCourses = await apiListAll('courses');
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get('cat');
+    if (catParam) {
+      currentCat = catParam;
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.cat === catParam);
+      });
+    }
+    renderCourses();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('coursesGrid').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Impossible de charger les formations.</p></div>';
+  }
+}
+
+document.getElementById('filterTabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.filter-tab');
+  if (!btn) return;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  renderCourses();
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value;
+  renderCourses();
+});
+
+loadCourses();
+</script>
+</body>
+</html>

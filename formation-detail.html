@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Détail de la formation — AgriMaster</title>
+<meta name="description" content="Découvrez le contenu détaillé de cette formation AgriMaster et téléchargez le guide PDF complet.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<div id="navbar-mount"></div>
+
+<div class="section" id="detailContainer" style="padding-top:40px;">
+  <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><p>Chargement de la formation...</p></div>
+</div>
+
+<section class="section" id="relatedSection" style="display:none;">
+  <div class="section-head reveal">
+    <span class="section-tag"><i class="fa-solid fa-layer-group"></i> À découvrir aussi</span>
+    <h2 class="section-title">Formations similaires</h2>
+  </div>
+  <div class="courses-grid" id="relatedGrid"></div>
+</section>
+
+<div id="footer-mount"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/pdf-generator.js"></script>
+<script src="js/payment.js"></script>
+<script>
+renderNavbar('formations');
+renderFooter();
+
+const params = new URLSearchParams(window.location.search);
+const courseId = params.get('id');
+let currentCourse = null;
+
+async function checkAlreadyDownloaded(userId, courseId) {
+  const downloads = await apiListAll('downloads');
+  return downloads.some(d => d.user_id === userId && d.course_id === courseId);
+}
+
+async function handleDownload() {
+  const session = getSession();
+  if (!session) {
+    toast('Veuillez vous connecter pour télécharger cette formation.', 'warning');
+    setTimeout(() => window.location.href = 'connexion.html', 1200);
+    return;
+  }
+
+  const sub = await getActiveSubscription(session.id);
+  if (!sub) {
+    toast('Un abonnement actif est requis pour télécharger.', 'warning');
+    openPaymentModal(async () => {
+      await performDownload(session);
+    });
+    return;
+  }
+
+  await performDownload(session);
+}
+
+async function performDownload(session) {
+  try {
+    generateCoursePdf(currentCourse);
+    await apiCreate('downloads', {
+      id: genId('dl'),
+      user_id: session.id,
+      user_email: session.email,
+      course_id: currentCourse.id,
+      course_title: currentCourse.title,
+      file_name: `AgriMaster_${currentCourse.title.replace(/[^a-zA-Z0-9]+/g, '_')}.pdf`
+    });
+    await apiUpdate('courses', currentCourse.id, { downloads_count: (currentCourse.downloads_count || 0) + 1 });
+    toast('Téléchargement réussi ! Votre PDF a été généré.');
+  } catch (e) {
+    console.error(e);
+    toast('Erreur lors de la génération du PDF.', 'error');
+  }
+}
+
+function renderDetail(course) {
+  const meta = CATEGORY_META[course.category] || CATEGORY_META['Agriculture'];
+  const thumb = course.image_url
+    ? `<img src="${course.image_url}" alt="${course.title}" style="width:100%;height:100%;object-fit:cover;">`
+    : `<i class="fa-solid ${course.icon || meta.icon}" style="font-size:4rem;color:rgba(255,255,255,0.9);"></i>`;
+
+  document.title = `${course.title} — AgriMaster`;
+
+  document.getElementById('detailContainer').innerHTML = `
+    <div class="breadcrumb reveal"><a href="index.html">Accueil</a> / <a href="formations.html">Formations</a> / ${course.title}</div>
+    <div style="display:grid; grid-template-columns:1.1fr 0.9fr; gap:50px; align-items:start;">
+      <div class="reveal">
+        <div style="border-radius:24px; overflow:hidden; height:340px; box-shadow:var(--shadow-strong); background:linear-gradient(135deg, ${meta.color}, #34c95f); display:flex; align-items:center; justify-content:center; margin-bottom:30px;">
+          ${thumb}
+        </div>
+        <span class="course-cat"><i class="fa-solid ${meta.icon}"></i> ${course.category} • ${course.level}</span>
+        <h1 style="margin:12px 0 18px; font-size:clamp(1.6rem,3vw,2.2rem);">${course.title}</h1>
+        <p style="color:var(--ink-500); font-size:1.02rem; line-height:1.8; margin-bottom:26px;">${course.description}</p>
+
+        <div style="display:flex; gap:26px; flex-wrap:wrap; margin-bottom:34px;">
+          <div class="flex items-center gap-2"><i class="fa-regular fa-clock" style="color:var(--green-600)"></i> ${course.duration}</div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-star" style="color:var(--orange-500)"></i> ${course.rating} / 5</div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-download" style="color:var(--green-600)"></i> ${course.downloads_count} téléchargements</div>
+        </div>
+
+        <div class="info-card glass">
+          <h3 style="margin:0 0 16px; font-size:1.15rem;"><i class="fa-solid fa-list-check" style="color:var(--green-600)"></i> Contenu du guide PDF</h3>
+          <div class="pricing-features" style="margin:0;">
+            <li><i class="fa-solid fa-check"></i> Introduction complète au sujet</li>
+            <li><i class="fa-solid fa-check"></i> Objectifs pédagogiques clairs</li>
+            <li><i class="fa-solid fa-check"></i> Liste du matériel nécessaire</li>
+            <li><i class="fa-solid fa-check"></i> Étapes détaillées de mise en œuvre</li>
+            <li><i class="fa-solid fa-check"></i> Budget prévisionnel chiffré</li>
+            <li><i class="fa-solid fa-check"></i> Analyse des risques et solutions</li>
+            <li><i class="fa-solid fa-check"></i> Étude de rentabilité</li>
+            <li><i class="fa-solid fa-check"></i> Conclusion et recommandations</li>
+          </div>
+        </div>
+      </div>
+
+      <aside class="reveal">
+        <div class="info-card glass" style="position:sticky; top:100px;">
+          <div class="text-center" style="margin-bottom:20px;">
+            <div style="font-family:var(--font-display); font-weight:800; font-size:1.8rem; color:var(--green-700);">100 FCFA<span style="font-size:0.9rem; color:var(--ink-500); font-weight:600;"> /mois</span></div>
+            <p style="color:var(--ink-500); font-size:0.85rem;">Accès illimité à toutes les formations</p>
+          </div>
+          <button class="btn btn-accent btn-block" id="downloadBtn" style="margin-bottom:12px;">
+            <i class="fa-solid fa-file-pdf"></i> Télécharger le PDF
+          </button>
+          <a href="abonnement.html" class="btn btn-ghost btn-block"><i class="fa-solid fa-crown"></i> Voir l'abonnement</a>
+          <div style="margin-top:22px; padding-top:22px; border-top:1px solid rgba(20,108,58,0.1);">
+            <div class="flex items-center gap-2" style="margin-bottom:12px; font-size:0.85rem; color:var(--ink-700);"><i class="fa-solid fa-shield-halved" style="color:var(--green-600)"></i> Paiement Mobile Money sécurisé</div>
+            <div class="flex items-center gap-2" style="margin-bottom:12px; font-size:0.85rem; color:var(--ink-700);"><i class="fa-solid fa-bolt" style="color:var(--green-600)"></i> Activation instantanée</div>
+            <div class="flex items-center gap-2" style="font-size:0.85rem; color:var(--ink-700);"><i class="fa-solid fa-rotate" style="color:var(--green-600)"></i> Renouvelable chaque mois</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  `;
+
+  document.getElementById('downloadBtn').addEventListener('click', handleDownload);
+  initRevealAnimations();
+}
+
+async function loadRelated(course, all) {
+  const related = all.filter(c => c.category === course.category && c.id !== course.id).slice(0, 4);
+  if (!related.length) return;
+  document.getElementById('relatedSection').style.display = 'block';
+  document.getElementById('relatedGrid').innerHTML = related.map(courseCardHtml).join('');
+  initRevealAnimations();
+}
+
+async function init() {
+  if (!courseId) { window.location.href = 'formations.html'; return; }
+  try {
+    currentCourse = await apiGet('courses', courseId);
+    renderDetail(currentCourse);
+    const all = await apiListAll('courses');
+    loadRelated(currentCourse, all);
+  } catch (e) {
+    console.error(e);
+    document.getElementById('detailContainer').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Formation introuvable.</p></div>';
+  }
+}
+init();
+</script>
+</body>
+</html>
